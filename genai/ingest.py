@@ -10,9 +10,10 @@ It acts as the knowledge-base indexing step in a retrieval pipeline.
 import os
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
+from langchain_core.documents import Document
 
 load_dotenv()
 
@@ -38,9 +39,15 @@ def create_vector_store():
     """Split documents, generate embeddings, and persist them to Chroma."""
     raw_docs = load_documents_from_dir(DATA_DIR)
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-    docs = text_splitter.split_documents(raw_docs) if hasattr(raw_docs[0], "page_content") else [
-        {"page_content": doc["page_content"], "metadata": doc.get("metadata", {})} for doc in raw_docs
-    ]
+
+    if raw_docs and hasattr(raw_docs[0], "page_content"):
+        docs = text_splitter.split_documents(raw_docs)
+    else:
+        docs = []
+        for doc in raw_docs:
+            content = doc.get("page_content", "")
+            metadata = doc.get("metadata", {})
+            docs.append(Document(page_content=content, metadata=metadata))
 
     embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
     vector_store = Chroma.from_documents(
