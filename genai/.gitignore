@@ -1,0 +1,22 @@
+# Environment secrets
+.env
+.env.*
+!.env.example
+
+# Python virtual environment
+.venv/
+venv/
+env/
+
+# Local model/data caches
+chroma_db/
+__pycache__/
+*.pyc
+
+# OS/editor files
+.DS_Store
+.vscode/
+.idea/
+
+# Logs and temp files
+*.log
